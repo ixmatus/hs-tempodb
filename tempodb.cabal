@@ -31,10 +31,14 @@ library
                        http-streams     >= 0.6.1.1,
                        mtl              >= 2.1.2,
                        HTTP             >= 4000.2.9,
-                       HsOpenSSL        >= 0.10.3.5
+                       HsOpenSSL        >= 0.10.3.5,
+                       bytestring       >= 0.10.0.2
 
 
   default-language:    Haskell2010
+
+  exposed-modules:
+    Database.Tempodb
 
 source-repository head
     Type:     git
@@ -43,7 +47,7 @@ source-repository head
 test-suite tests
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
-  main-is:        EAM.hs
+  main-is:        Test.hs
   -- other-modules:
 
   ghc-options:
