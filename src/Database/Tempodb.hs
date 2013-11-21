@@ -1,4 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.Tempodb where
+module Database.Tempodb
+( module Database.Tempodb.Types
+
+) where
+
+
+
+import           Database.Tempodb.Types
 
