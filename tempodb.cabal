@@ -44,21 +44,21 @@ source-repository head
     Type:     git
     Location: https://github.com/ixmatus/hs-tempodb
 
-test-suite tests
-  type:           exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is:        Test.hs
-  -- other-modules:
+-- test-suite tests
+--   type:           exitcode-stdio-1.0
+--   hs-source-dirs: test
+--   main-is:        Test.hs
+--   -- other-modules:
 
-  ghc-options:
-    -Wall -threaded -rtsopts
+--   ghc-options:
+--     -Wall -threaded -rtsopts
 
-  build-depends:
-    tempodb,
-    base                       >= 4.5,
-    QuickCheck                 >= 2.5,
-    test-framework             >= 0.8,
-    test-framework-quickcheck2 >= 0.3.0,
-    test-framework-hunit       >= 0.3.0,
-    network                    >= 2.4.1.2,
-    bytestring                 >= 0.10.0.2
+--   build-depends:
+--     tempodb,
+--     base                       >= 4.5,
+--     QuickCheck                 >= 2.5,
+--     test-framework             >= 0.8,
+--     test-framework-quickcheck2 >= 0.3.0,
+--     test-framework-hunit       >= 0.3.0,
+--     network                    >= 2.4.1.2,
+--     bytestring                 >= 0.10.0.2
