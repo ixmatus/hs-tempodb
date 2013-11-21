@@ -2,6 +2,8 @@
 
 module Database.Tempodb.Methods where
 
+import           Network.Http.Client
+
 -- | Top-level API methods are:
 --
 -- 1. Series
@@ -10,4 +12,5 @@ module Database.Tempodb.Methods where
 -- 4. Increment
 -- 5. Single
 -- 6. Delete
+
 
