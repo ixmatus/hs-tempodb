@@ -1,4 +1,2 @@
-hs-tempodb
-==========
-
-A small Haskell wrapper around TempoDB's api.
+* Welcome!
+  This is a small Haskell wrapper around the [[http://tempo-db.com][TempoDB]] REST API.
