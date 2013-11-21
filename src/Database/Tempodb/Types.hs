@@ -4,9 +4,7 @@
 module Database.Tempodb.Types where
 
 import           Control.Monad.Reader
-
-import           Data.ByteString.Base64
-import           Data.ByteString.Char8  as C8
+import           Data.ByteString.Char8 as C8
 import           Network.Http.Client
 
 -- | It's easy to mix up which one is first so let's newtype these
@@ -19,11 +17,11 @@ data BasicAuth = BasicAuth ApiKey ApiSec
 
 -- | Custom TempoDB ReaderT.
 newtype Tempodb a = Tempodb {
-    runTDB :: ReaderT BasicAuth IO a
-    } deriving (Monad, MonadIO, MonadReader BasicAuth)
+    runTDB :: ReaderT (RequestBuilder ()) IO a
+    } deriving (Monad, MonadIO, MonadReader (RequestBuilder ()))
 
-runTempoDB :: Tempodb a -> BasicAuth -> IO (a)
-runTempoDB k auth = runReaderT (runTDB k) auth
+runTempoDB :: BasicAuth -> Tempodb a -> IO a
+runTempoDB auth f = runReaderT (runTDB f) $ baseRequest auth
 
 baseRequest :: BasicAuth -> RequestBuilder ()
 baseRequest (BasicAuth k s) =

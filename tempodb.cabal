@@ -28,7 +28,10 @@ library
   cpp-options:         -Dcabal
   ghc-options:         -Wall -fno-warn-type-defaults -fno-warn-unused-do-bind
   build-depends:       base             >= 4.6 && <4.7,
-                       http-streams     >= 0.6.1.1
+                       http-streams     >= 0.6.1.1,
+                       mtl              >= 2.1.2,
+                       HTTP             >= 4000.2.9,
+                       HsOpenSSL        >= 0.10.3.5
 
 
   default-language:    Haskell2010
