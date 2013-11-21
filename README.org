@@ -1,2 +1,28 @@
 * Welcome!
   This is a small Haskell wrapper around the [[http://tempo-db.com][TempoDB]] REST API.
+
+** Usage is easy
+   Create your basic auth record, keys and secrets are newtyped (I
+   always mix up which one goes first) and run one of the method
+   functions with the runTempoDB monad.
+   
+   #+BEGIN_SRC <language haskell>
+   λ: import Database.Tempodb
+   λ: let a = BasicAuth (ApiKey "mykey") (ApiSec "mysecret")
+   λ: runTempoDB a $ seriesList Nothing
+   λ: runTempoDB a $ seriesList [("key", "somekey"), ("key", "another")]
+   #+END_SRC
+
+   #+BEGIN_SRC <language haskell>
+   λ: :set -XOverloadedStrings
+   λ: import Data.ByteString.Char8 as C8
+   λ: import Database.Tempodb
+   λ: let a = BasicAuth (ApiKey "mykey") (ApiSec "mysecret")
+   λ: :{
+   λ: runTempoDB a $ do
+   λ:     f <- seriesList $ Just [("key", "somekey"), ("key", "another")]
+   λ:     r <- seriesList Nothing
+   λ:     liftIO . C8.putStrLn $ C8.concat ["Results: ", f, r]
+   λ: :}
+   λ: [][]
+   #+END_SRC
