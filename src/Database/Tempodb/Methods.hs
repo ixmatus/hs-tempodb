@@ -6,7 +6,7 @@ import           Blaze.ByteString.Builder.ByteString (fromByteString)
 import           Control.Monad.Reader
 import           Data.Aeson                          as A
 import           Data.ByteString.Char8               as C8
-import           Data.ByteString.Lazy                (fromStrict)
+import           Data.ByteString.Lazy                (fromStrict, toStrict)
 import           Data.Monoid
 import           Database.Tempodb.Types
 import           Network.HTTP.Base                   (urlEncodeVars)
@@ -70,12 +70,20 @@ seriesGet q = do
 
 seriesList :: Maybe QueryArgs -> Tempodb ByteString
 seriesList q = do
-    auth <- ask
-    req  <- liftIO . buildRequest $ do
-        http GET path
-        auth
-
+    req <- seriesCommon q GET
     liftIO $ runRequest req Nothing
+
+seriesDelete :: Maybe QueryArgs -> Tempodb ByteString
+seriesDelete q = do
+    req <- seriesCommon q DELETE
+    liftIO $ runRequest req Nothing
+
+seriesCommon :: Maybe QueryArgs -> Method -> Tempodb Request
+seriesCommon q method = do
+    auth <- ask
+    liftIO . buildRequest $ do
+        http method path
+        auth
 
   where
     root = rootpath <> "/series"
@@ -83,7 +91,19 @@ seriesList q = do
         Nothing  -> root
         Just qry -> root <> "?" <> (C8.pack $ urlEncodeVars qry)
 
+seriesUpdate :: IdOrKey -> Series -> Tempodb (Maybe Series)
+seriesUpdate q s = do
+    let postdata = toStrict $ A.encode s
+    auth <- ask
+    req  <- liftIO . buildRequest $ do
+        http PUT path
+        setContentLength . fromIntegral $ C8.length postdata
+        auth
 
---seriesCreate
---seriesUpdate
---seriesDelete
+    result <- liftIO $ runRequest req Nothing
+    return . A.decode $ fromStrict result
+
+  where
+    ident (SeriesId i)   = "/id/" <> i
+    ident (SeriesKey k) = "/key/" <> k
+    path = rootpath <> "/series" <> (ident q)
