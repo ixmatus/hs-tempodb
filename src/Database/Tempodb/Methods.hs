@@ -68,10 +68,11 @@ seriesGet q = do
     ident (SeriesKey k) = "/key/" <> k
     path = rootpath <> "/series" <> (ident q)
 
-seriesList :: Maybe QueryArgs -> Tempodb ByteString
+seriesList :: Maybe QueryArgs -> Tempodb (Maybe [Series])
 seriesList q = do
     req <- seriesCommon q GET
-    liftIO $ runRequest req Nothing
+    result <- liftIO $ runRequest req Nothing
+    return . A.decode $ fromStrict result
 
 seriesDelete :: Maybe QueryArgs -> Tempodb ByteString
 seriesDelete q = do
@@ -101,7 +102,7 @@ seriesUpdate q s = do
         setContentLength . fromIntegral $ C8.length postdata
         auth
 
-    result <- liftIO $ runRequest req Nothing
+    result <- liftIO . runRequest req $ Just postdata
     return . A.decode $ fromStrict result
 
   where
