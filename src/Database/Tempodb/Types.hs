@@ -3,10 +3,14 @@
 
 module Database.Tempodb.Types where
 
+import           Prelude               as P
+
 import           Control.Applicative
+import           Control.Monad
 import           Control.Monad.Reader
 import           Data.Aeson
 import           Data.ByteString.Char8 as C8
+import           Data.Map              (Map)
 import           Network.Http.Client
 
 -- | It's easy to mix up which one is first so let's newtype these
@@ -32,20 +36,23 @@ baseRequest (BasicAuth k s) =
 data IdOrKey = SeriesId ByteString | SeriesKey ByteString
     deriving (Show, Eq, Ord)
 
+newtype AttrList = AttrList { attrList :: [(ByteString, ByteString)]}
+    deriving (Show, Eq, Ord)
+
 -- | Datatype for TempoDB Series Metadata.
 data Series = Series
     { id         :: ByteString
     , key        :: ByteString
     , name       :: ByteString
     , tags       :: [ByteString]
-    , attributes :: [(ByteString, ByteString)]
-    }
+    , attributes :: Map ByteString ByteString
+    } deriving (Show, Eq, Ord)
 
 instance FromJSON Series where
-    parseJSON (Object v) = Series      <$>
-                           v .: "id"   <*>
-                           v .: "key"  <*>
-                           v .: "name" <*>
-                           v .: "tags" <*>
-                           v .: "attributes"
+    parseJSON (Object o) = Series      <$>
+                           o .: "id"   <*>
+                           o .: "key"  <*>
+                           o .: "name" <*>
+                           o .: "tags" <*>
+                           o .: "attributes"
     parseJSON _ = mzero

@@ -43,12 +43,14 @@ runRequest r b = withOpenSSL $ do
 
 seriesCreate :: ByteString -> Tempodb (Maybe Series)
 seriesCreate k = do
+    let postdata = "{\"key\": \"" <> k <> "\"}"
     auth <- ask
     req  <- liftIO . buildRequest $ do
-        http POST "/series"
+        http POST $ rootpath <> "/series"
+        setContentLength . fromIntegral $ C8.length postdata
         auth
 
-    result <- liftIO . runRequest req $ Just k
+    result <- liftIO . runRequest req $ Just postdata
     return . A.decode $ fromStrict result
 
 seriesGet :: IdOrKey -> Tempodb (Maybe Series)
@@ -63,8 +65,8 @@ seriesGet q = do
 
   where
     ident (SeriesId i)   = "/id/" <> i
-    ident (SeriesKey k) = "/key" <> k
-    path = rootpath <> "/series/" <> (ident q)
+    ident (SeriesKey k) = "/key/" <> k
+    path = rootpath <> "/series" <> (ident q)
 
 seriesList :: Maybe QueryArgs -> Tempodb ByteString
 seriesList q = do
