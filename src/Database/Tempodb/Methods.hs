@@ -83,6 +83,7 @@ seriesCommon q method = do
     auth <- ask
     liftIO . buildRequest $ do
         http method path
+        setContentLength 0
         auth
 
   where
