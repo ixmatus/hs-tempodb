@@ -3,7 +3,10 @@
 module Database.Tempodb.Methods where
 
 import           Control.Monad.Reader
+import           Data.Aeson             as A
 import           Data.ByteString.Char8  as C8
+import           Data.ByteString.Lazy   (fromStrict)
+import           Data.Monoid
 import           Database.Tempodb.Types
 import           Network.HTTP.Base      (urlEncodeVars)
 import           Network.Http.Client
@@ -32,20 +35,36 @@ runRequest r = withOpenSSL $ do
         sendRequest c r emptyBody
         receiveResponse c concatHandler'
 
---seriesGet
+
+seriesGet :: Either SeriesId SeriesKey -> Tempodb (Maybe Series)
+seriesGet q = do
+    auth <- ask
+    req  <- liftIO . buildRequest $ do
+        http GET path
+        auth
+
+    result <- liftIO $ runRequest req
+    return . A.decode $ fromStrict result
+
+  where
+    ident (Left (SeriesId i))   = "/id/" <> i
+    ident (Right (SeriesKey k)) = "/key" <> k
+    path = rootpath <> "/" <> "series/" <> (ident q)
+
 seriesList :: Maybe QueryArgs -> Tempodb ByteString
 seriesList q = do
-    let root = C8.concat [rootpath, "/", "series"]
-        path = case q of
-          Nothing  -> root
-          Just qry -> C8.concat [root, "?", C8.pack $ urlEncodeVars qry]
-
     auth <- ask
     req  <- liftIO . buildRequest $ do
         http GET path
         auth
 
     liftIO $ runRequest req
+
+  where
+    root = rootpath <> "/" <> "series"
+    path = case q of
+        Nothing  -> root
+        Just qry -> root <> "?" <> (C8.pack $ urlEncodeVars qry)
 
 
 --seriesCreate

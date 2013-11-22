@@ -3,7 +3,9 @@
 
 module Database.Tempodb.Types where
 
+import           Control.Applicative
 import           Control.Monad.Reader
+import           Data.Aeson
 import           Data.ByteString.Char8 as C8
 import           Network.Http.Client
 
@@ -15,7 +17,7 @@ newtype ApiSec = ApiSec {unSec :: ByteString} deriving (Show, Eq, Ord)
 data BasicAuth = BasicAuth ApiKey ApiSec
     deriving (Show, Eq, Ord)
 
--- | Custom TempoDB ReaderT.
+-- | Custom TempoDB ReaderT monad.
 newtype Tempodb a = Tempodb {
     runTDB :: ReaderT (RequestBuilder ()) IO a
     } deriving (Monad, MonadIO, MonadReader (RequestBuilder ()))
@@ -26,3 +28,24 @@ runTempoDB auth f = runReaderT (runTDB f) $ baseRequest auth
 baseRequest :: BasicAuth -> RequestBuilder ()
 baseRequest (BasicAuth k s) =
     setAuthorizationBasic (unKey k) (unSec s)
+
+newtype SeriesId  = SeriesId  ByteString deriving (Show, Eq, Ord)
+newtype SeriesKey = SeriesKey ByteString deriving (Show, Eq, Ord)
+
+-- | Datatype for TempoDB Series Metadata.
+data Series = Series
+    { id         :: ByteString
+    , key        :: ByteString
+    , name       :: ByteString
+    , tags       :: [ByteString]
+    , attributes :: [(ByteString, ByteString)]
+    }
+
+instance FromJSON Series where
+    parseJSON (Object v) = Series      <$>
+                           v .: "id"   <*>
+                           v .: "key"  <*>
+                           v .: "name" <*>
+                           v .: "tags" <*>
+                           v .: "attributes"
+    parseJSON _ = mzero
