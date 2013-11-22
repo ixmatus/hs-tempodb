@@ -36,9 +36,6 @@ baseRequest (BasicAuth k s) =
 data IdOrKey = SeriesId ByteString | SeriesKey ByteString
     deriving (Show, Eq, Ord)
 
-newtype AttrList = AttrList { attrList :: [(ByteString, ByteString)]}
-    deriving (Show, Eq, Ord)
-
 -- | Datatype for TempoDB Series Metadata.
 data Series = Series
     { id         :: ByteString
@@ -65,3 +62,9 @@ instance ToJSON Series where
         , "tags"  .= t
         , "attributes" .= a
         ]
+
+data SeriesData = SeriesData
+    { series :: Series
+    , start  :: 
+    , end    :: 
+    }

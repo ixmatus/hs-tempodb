@@ -8,4 +8,6 @@ cabal-dev
 cabal.sandbox.config
 .vagrant
 log
+#*
 .#*
+
