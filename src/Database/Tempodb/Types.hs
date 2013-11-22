@@ -56,3 +56,12 @@ instance FromJSON Series where
                            o .: "tags" <*>
                            o .: "attributes"
     parseJSON _ = mzero
+
+instance ToJSON Series where
+    toJSON (Series i k n t a) = object
+        [ "id"    .= i
+        , "key"   .= k
+        , "name"  .= n
+        , "tags"  .= t
+        , "attributes" .= a
+        ]
