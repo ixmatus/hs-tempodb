@@ -29,8 +29,8 @@ baseRequest :: BasicAuth -> RequestBuilder ()
 baseRequest (BasicAuth k s) =
     setAuthorizationBasic (unKey k) (unSec s)
 
-newtype SeriesId  = SeriesId  ByteString deriving (Show, Eq, Ord)
-newtype SeriesKey = SeriesKey ByteString deriving (Show, Eq, Ord)
+data IdOrKey = SeriesId ByteString | SeriesKey ByteString
+    deriving (Show, Eq, Ord)
 
 -- | Datatype for TempoDB Series Metadata.
 data Series = Series

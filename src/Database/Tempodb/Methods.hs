@@ -36,7 +36,7 @@ runRequest r = withOpenSSL $ do
         receiveResponse c concatHandler'
 
 
-seriesGet :: Either SeriesId SeriesKey -> Tempodb (Maybe Series)
+seriesGet :: IdOrKey -> Tempodb (Maybe Series)
 seriesGet q = do
     auth <- ask
     req  <- liftIO . buildRequest $ do
@@ -47,8 +47,8 @@ seriesGet q = do
     return . A.decode $ fromStrict result
 
   where
-    ident (Left (SeriesId i))   = "/id/" <> i
-    ident (Right (SeriesKey k)) = "/key" <> k
+    ident (SeriesId i)   = "/id/" <> i
+    ident (SeriesKey k) = "/key" <> k
     path = rootpath <> "/" <> "series/" <> (ident q)
 
 seriesList :: Maybe QueryArgs -> Tempodb ByteString
