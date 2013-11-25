@@ -71,16 +71,15 @@ instance ToJSON SeriesDataWrite where
     toJSON = buildSeriesBulk
 
 buildSeriesBulk :: SeriesDataWrite -> Value
-buildSeriesBulk (SeriesDataWrite i t v) = object
+buildSeriesBulk (SeriesDataWrite i t v) = object . ts $
     [ eid
-    , ts
     , "v" .= v
     ]
   where
-    ts  = case t of
-        Nothing -> ("","")
+    ts l = case t of
+        Nothing -> l
 
-        Just tv -> ("t", String . T.pack $ formatTime defaultTimeLocale "%FT%H:%M:%S%Q%z" tv)
+        Just tv -> ("t", String . T.pack $ formatTime defaultTimeLocale "%FT%H:%M:%S%Q%z" tv):l
     eid = case i of
         T.SeriesId idv -> "id" .= idv
         T.SeriesKey kv -> "key".= kv
@@ -108,7 +107,7 @@ writeBulk d = do
     let postData = toStrict $ A.encode d
     auth <- ask
     req  <- liftIO . buildRequest $ do
-        http POST "/data"
+        http POST (rootpath <> "/data/")
         setContentLength . fromIntegral $ C8.length postData
         auth
 
@@ -121,7 +120,7 @@ writeMulti d = do
     let postData = toStrict $ A.encode d
     auth <- ask
     req  <- liftIO . buildRequest $ do
-        http POST "/multi"
+        http POST (rootpath <> "/multi/")
         setContentLength . fromIntegral $ C8.length postData
         auth
 
