@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
@@ -12,6 +13,7 @@ import           Data.ByteString.Char8 as C8
 import           Data.Map              (Map)
 import qualified Data.Text             as T
 import           Data.Time
+import           Data.Typeable         (Typeable)
 import           Network.Http.Client
 import           Prelude               as P
 import           System.Locale
@@ -20,6 +22,10 @@ import           System.Locale
 -- suckers to make it explicit.
 newtype ApiKey = ApiKey {unKey :: ByteString} deriving (Show, Eq, Ord)
 newtype ApiSec = ApiSec {unSec :: ByteString} deriving (Show, Eq, Ord)
+
+newtype TempoDBTime = TempoDBTime {
+      fromTempoDBTime :: UTCTime
+    } deriving (Eq, Ord, Read, Show, Typeable, FormatTime)
 
 data BasicAuth = BasicAuth ApiKey ApiSec
     deriving (Show, Eq, Ord)
@@ -68,12 +74,12 @@ instance ToJSON Series where
 
 data Data = Data
     { uid       :: Maybe IdOrKey
-    , timestamp :: Maybe UTCTime
+    , timestamp :: Maybe TempoDBTime
     , value     :: Double
     } deriving (Show, Eq, Ord)
 
 data Bulk = Bulk
-    { timestmp   :: UTCTime
+    { timestmp   :: TempoDBTime
     , bulkValues :: [Data]
     } deriving (Show, Eq, Ord)
 
@@ -95,8 +101,8 @@ data Summary = Summary
 
 data SeriesData = SeriesData
     { series  :: Series
-    , start   :: UTCTime
-    , end     :: UTCTime
+    , start   :: TempoDBTime
+    , end     :: TempoDBTime
     , values  :: [Data]
     , rollup  :: Maybe Rollup
     , summary :: Summary
@@ -143,6 +149,17 @@ instance FromJSON Summary where
                            o .: "count"
     parseJSON _ = mzero
 
+instance ToJSON TempoDBTime where
+    toJSON (TempoDBTime t) =
+        String (T.pack (formatTime defaultTimeLocale "%FT%H:%M:%S%Q%z" t))
+
+instance FromJSON TempoDBTime where
+    parseJSON (String t) =
+        case parseTime defaultTimeLocale "%FT%H:%M:%S%Q%z" (T.unpack t) of
+          Just d -> pure (TempoDBTime d)
+          _      -> mzero
+    parseJSON _          = mzero
+
 instance FromJSON Data where
     parseJSON = parseSeriesData
 
@@ -168,12 +185,12 @@ instance ToJSON Data where
     toJSON = buildSeriesData
 
 buildSeriesData :: Data -> Value
-buildSeriesData (Data i t v) = object . ts .eid $ ["v" .= v]
+buildSeriesData (Data i t v) = object . ts . eid $ ["v" .= v]
   where
     ts l = case t of
         Nothing -> l
 
-        Just tv -> ("t", String . T.pack $ formatTime defaultTimeLocale "%FT%H:%M:%S%Q%z" tv):l
+        Just tv -> ("t", toJSON tv):l
     eid l = case i of
         Nothing -> l
         Just (SeriesId idv) -> ("id" .= idv):l
