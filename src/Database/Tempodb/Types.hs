@@ -9,9 +9,11 @@ import           Control.Monad.Reader
 import           Data.Aeson
 import           Data.ByteString.Char8 as C8
 import           Data.Map              (Map)
+import qualified Data.Text             as T
 import           Data.Time
 import           Network.Http.Client
 import           Prelude               as P
+import           System.Locale
 
 -- | It's easy to mix up which one is first so let's newtype these
 -- suckers to make it explicit.
@@ -105,10 +107,21 @@ instance FromJSON SeriesData where
     parseJSON _ = mzero
 
 instance FromJSON Data where
-    parseJSON (Object o) = Data             <$>
-                           o .: "timestamp" <*>
-                           o .: "value"
+    parseJSON (Object o) = Data     <$>
+                           o .: "t" <*>
+                           o .: "v"
     parseJSON _ = mzero
+
+instance ToJSON Data where
+    toJSON = buildData
+
+buildData :: Data -> Value
+buildData (Data t v) = object
+    [ timest
+    , "v" .= v
+    ]
+  where
+    timest = ("t", String . T.pack $ formatTime defaultTimeLocale "%FT%H:%M:%S%Q%z" t)
 
 instance FromJSON Rollup where
     parseJSON (Object o) = Rollup          <$>

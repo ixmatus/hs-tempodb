@@ -23,7 +23,7 @@ readOne q qa = do
         http GET path
         auth
 
-    result <- liftIO $ runRequest req Nothing
+    (_,result) <- liftIO $ runRequest req Nothing
     return . A.decode $ fromStrict result
 
   where

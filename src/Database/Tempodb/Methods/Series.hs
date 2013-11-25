@@ -39,7 +39,7 @@ seriesCreate k = do
         setContentLength . fromIntegral $ C8.length postdata
         auth
 
-    result <- liftIO . runRequest req $ Just postdata
+    (_,result) <- liftIO . runRequest req $ Just postdata
     return . A.decode $ fromStrict result
 
 seriesGet :: IdOrKey -> Tempodb (Maybe Series)
@@ -49,7 +49,7 @@ seriesGet q = do
         http GET path
         auth
 
-    result <- liftIO $ runRequest req Nothing
+    (_,result) <- liftIO $ runRequest req Nothing
     return . A.decode $ fromStrict result
 
   where
@@ -60,10 +60,10 @@ seriesGet q = do
 seriesList :: Maybe QueryArgs -> Tempodb (Maybe [Series])
 seriesList q = do
     req <- seriesCommon q GET
-    result <- liftIO $ runRequest req Nothing
+    (_,result) <- liftIO $ runRequest req Nothing
     return . A.decode $ fromStrict result
 
-seriesDelete :: Maybe QueryArgs -> Tempodb ByteString
+seriesDelete :: Maybe QueryArgs -> Tempodb (Int,ByteString)
 seriesDelete q = do
     req <- seriesCommon q DELETE
     liftIO $ runRequest req Nothing
@@ -91,7 +91,7 @@ seriesUpdate q s = do
         setContentLength . fromIntegral $ C8.length postdata
         auth
 
-    result <- liftIO . runRequest req $ Just postdata
+    (_,result) <- liftIO . runRequest req $ Just postdata
     return . A.decode $ fromStrict result
 
   where

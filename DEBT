@@ -6,3 +6,6 @@ application, including devops, that need refactoring attention.
 1. [ ] The Query string params are just a list of pairs but it's super
    cumbersome and I think we can clean it up bit with some custom data
    types and a serializer.
+2. [ ] The IdOrKey translation into the correct path string is messy
+   and I'm repeating the same where functions in many different
+   functions (which is bad!).
