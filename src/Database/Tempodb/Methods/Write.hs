@@ -24,20 +24,21 @@ import           Network.Http.Client
 import           System.Locale
 
 data SeriesDataWrite = SeriesDataWrite
-    { uid    :: T.IdOrKey
-    , tstamp :: Maybe UTCTime
-    , value  :: Double
+    { uid          :: T.IdOrKey
+    , timestampSDW :: Maybe UTCTime
+    , valueSDW     :: Double
     } deriving (Show, Eq, Ord)
 
 data Bulk = Bulk
-    { timestamp :: UTCTime
-    , values    :: [SeriesDataWrite]
+    { timestampB :: UTCTime
+    , valuesB    :: [SeriesDataWrite]
     } deriving (Show, Eq, Ord)
 
 instance FromJSON Bulk where
     parseJSON (Object o) = Bulk     <$>
                            o .: "t" <*>
                            o .: "data"
+    parseJSON _ = mzero
 
 instance ToJSON Bulk where
     toJSON (Bulk t v) = object
