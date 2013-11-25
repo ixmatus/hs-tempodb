@@ -9,3 +9,4 @@ application, including devops, that need refactoring attention.
 2. [ ] The IdOrKey translation into the correct path string is messy
    and I'm repeating the same where functions in many different
    functions (which is bad!).
+3. [ ] Hackage docs! I haven't written anything. Naughty me.
