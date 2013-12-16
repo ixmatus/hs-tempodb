@@ -2,7 +2,7 @@
 
 module Database.Tempodb.Methods.Read
 ( readOne
---, readMulti
+, readMulti
 )
 where
 
@@ -33,5 +33,21 @@ readOne q qa = do
     path = rootpath <> "/series" <> (ident q) <> "/data" <> query
 
     query = case qa of
+        Nothing  -> mempty
+        Just qry -> "?" <> (C8.pack $ urlEncodeVars qry)
+
+readMulti :: Maybe QueryArgs -> Tempodb (Maybe [SeriesData])
+readMulti q = do
+    auth <- ask
+    req  <- liftIO . buildRequest $ do
+        http GET path
+        auth
+
+    (_,result) <- liftIO $ runRequest req Nothing
+    return . A.decode $ fromStrict result
+
+  where
+    path = rootpath <> "/data" <> query
+    query = case q of
         Nothing  -> mempty
         Just qry -> "?" <> (C8.pack $ urlEncodeVars qry)
