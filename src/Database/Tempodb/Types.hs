@@ -156,8 +156,11 @@ instance ToJSON TempoDBTime where
 instance FromJSON TempoDBTime where
     parseJSON (String t) =
         case parseTime defaultTimeLocale "%FT%H:%M:%S%Q%z" (T.unpack t) of
-          Just d -> pure (TempoDBTime d)
-          _      -> mzero
+          Just d  -> pure (TempoDBTime d)
+          Nothing ->
+              case parseTime defaultTimeLocale "%FT%H:%M:%S%Q%Z" (T.unpack t) of
+                  Just d  -> pure (TempoDBTime d)
+                  Nothing -> mzero
     parseJSON _          = mzero
 
 instance FromJSON Data where
