@@ -35,7 +35,7 @@ library
     HTTP                      >= 4000.2.9 && < 4000.2.12,
     HsOpenSSL                 >= 0.10.4   && < 0.11,
     bytestring                >= 0.9.1    && < 0.11,
-    aeson                     >= 0.7.0.2  && < 0.7.1
+    aeson                     >= 0.7.0.2  && < 0.7.1,
     io-streams                >= 1.1.2.0  && < 1.2,
     blaze-builder             >= 0.3.3.0  && < 0.4,
     containers                >= 0.5.0.0  && < 0.6,
