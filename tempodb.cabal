@@ -1,5 +1,5 @@
 name:                tempodb
-version:             0.2.2.1
+version:             0.2.2.2
 synopsis:            A small Haskell wrapper around the TempoDB api.
 
 description:         TempoDB is a time-series database as-a-service with a
@@ -26,7 +26,7 @@ extra-source-files:
 library
   hs-source-dirs:      src
   cpp-options:         -Dcabal
-  ghc-options:         -Wall -fno-warn-type-defaults -fno-warn-unused-do-bind
+  ghc-options:         -Wall -fno-warn-type-defaults -fno-warn-orphans -fno-warn-unused-do-bind
 
   Build-Depends:
     base                      >= 4.6      && < 4.7,
@@ -35,10 +35,10 @@ library
     HTTP                      >= 4000.2.9 && < 4000.2.12,
     HsOpenSSL                 >= 0.10.4   && < 0.11,
     bytestring                >= 0.9.1    && < 0.11,
-    aeson                     >= 0.7.0.2  && < 0.7.1,
+    aeson                     >= 0.7.0.1  && < 0.7.0.2,
     io-streams                >= 1.1.2.0  && < 1.2,
     blaze-builder             >= 0.3.3.0  && < 0.4,
-    containers                >= 0.5.0.0  && < 0.6,
+    containers                >= 0.5.5.0  && < 0.6,
     time                      >= 1.4.0.1  && < 1.5,
     old-locale                >= 1.0.0.5  && < 1.0.1,
     text                      >= 0.11.3.1 && < 1.2

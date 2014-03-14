@@ -8,10 +8,12 @@ import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Reader
 import           Data.Aeson
-import           Data.Aeson.Types      (Parser)
+import           Data.Aeson.Types
+import qualified Data.ByteString       as B
 import           Data.ByteString.Char8 as C8
 import           Data.Map              (Map)
 import qualified Data.Text             as T
+import           Data.Text.Encoding    (decodeUtf8, encodeUtf8)
 import           Data.Time
 import           Data.Typeable         (Typeable)
 import           Network.Http.Client
@@ -51,7 +53,7 @@ data Series = Series
     , key        :: ByteString
     , name       :: ByteString
     , tags       :: [ByteString]
-    , attributes :: Map ByteString ByteString
+    , attributes :: Map T.Text T.Text
     } deriving (Show, Eq, Ord)
 
 instance FromJSON Series where
@@ -71,6 +73,14 @@ instance ToJSON Series where
         , "tags"  .= t
         , "attributes" .= a
         ]
+
+instance ToJSON B.ByteString where
+    toJSON = String . decodeUtf8
+    {-# INLINE toJSON #-}
+
+instance FromJSON B.ByteString where
+    parseJSON = withText "ByteString" $ pure . encodeUtf8
+    {-# INLINE parseJSON #-}
 
 data Data = Data
     { uid       :: Maybe IdOrKey

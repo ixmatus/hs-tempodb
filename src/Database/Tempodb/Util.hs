@@ -8,7 +8,7 @@ import           Blaze.ByteString.Builder.ByteString (fromByteString)
 import           Control.Exception                   (Exception, throw)
 import           Data.ByteString.Char8               as C8
 import           Data.Typeable
-import           Network.Http.Client
+import qualified Network.Http.Client                 as C
 import           OpenSSL                             (withOpenSSL)
 import           System.IO.Streams                   (InputStream, write)
 
@@ -19,25 +19,25 @@ rootpath :: ByteString
 rootpath = "/v1"
 
 -- | Run a constructed request.
-runRequest :: Request -> Maybe ByteString -> IO (Int,ByteString)
+runRequest :: C.Request -> Maybe ByteString -> IO (Int,ByteString)
 runRequest r b = withOpenSSL $ do
-    withConnection (establishConnection "https://api.tempo-db.com") go
+    C.withConnection (C.establishConnection "https://api.tempo-db.com") go
   where
     body = case b of
-      Nothing -> emptyBody
+      Nothing -> C.emptyBody
       Just v  -> (\o -> write (Just $ fromByteString v) o)
     go c = do
-        sendRequest c r body
-        receiveResponse c concatHandlerSt'
+        C.sendRequest c r body
+        C.receiveResponse c concatHandlerSt'
 
-concatHandlerSt' :: Response -> InputStream ByteString -> IO (StatusCode,ByteString)
+concatHandlerSt' :: C.Response -> InputStream ByteString -> IO (C.StatusCode, ByteString)
 concatHandlerSt' p i =
     if s >= 300
         then throw (HttpClientError s m)
-        else (concatHandler p i) >>= return . (s,)
+        else (C.concatHandler p i) >>= return . (s,)
   where
-    s = getStatusCode p
-    m = getStatusMessage p
+    s = C.getStatusCode p
+    m = C.getStatusMessage p
 
 data HttpClientError = HttpClientError Int ByteString
         deriving (Typeable)
