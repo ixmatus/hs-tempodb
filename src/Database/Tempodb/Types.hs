@@ -91,7 +91,9 @@ data Data a = Data
     } deriving (Show, Eq)
 
 instance Ord a => Ord (Data a) where
-    compare (Data _ t _) (Data _ t' _) = t `compare` t'
+    compare (Data _ (Just t) _) (Data _ (Just t') _) = compare t t'
+    compare (Data _ Nothing _) (Data _ t' _)         = compare Nothing t'
+    compare (Data _ Nothing v) (Data _ Nothing v')   = compare v v'
 
 data Bulk a = Bulk
     { timestmp   :: TempoDBTime
