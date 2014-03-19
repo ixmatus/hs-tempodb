@@ -84,11 +84,14 @@ instance FromJSON B.ByteString where
     parseJSON = withText "ByteString" $ pure . encodeUtf8
     {-# INLINE parseJSON #-}
 
-data Num a => Data a = Data
+data Data a = Data
     { uid       :: Maybe IdOrKey
     , timestamp :: Maybe TempoDBTime
     , value     :: a
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq)
+
+instance Ord a => Ord (Data a) where
+    compare (Data _ t _) (Data _ t' _) = t `compare` t'
 
 data Bulk a = Bulk
     { timestmp   :: TempoDBTime
