@@ -11,12 +11,13 @@ import           Control.Monad.Reader
 import           Data.Aeson             as A
 import           Data.ByteString.Char8  as C8
 import           Data.ByteString.Lazy   (fromStrict, toStrict)
+import           Data.Int
 import           Data.Monoid
 import           Database.Tempodb.Types as T
 import           Database.Tempodb.Util
 import           Network.Http.Client
 
-writeOne :: IdOrKey -> Data -> Tempodb Bool
+writeOne :: IdOrKey -> Data Int64 -> Tempodb Bool
 writeOne q d = do
     let postdata = toStrict $ A.encode d
     auth <- ask
@@ -34,7 +35,7 @@ writeOne q d = do
     ident (T.SeriesKey k) = "/key/" <> k
     path = rootpath <> "/series" <> (ident q)
 
-writeBulk :: Bulk -> Tempodb Bool
+writeBulk :: Bulk Int64 -> Tempodb Bool
 writeBulk d = do
     let postData = toStrict $ A.encode d
     auth <- ask
@@ -47,7 +48,7 @@ writeBulk d = do
 
     return True
 
-writeMulti :: [Data] -> T.Tempodb (Either (Maybe [Data]) Bool)
+writeMulti :: [Data Int64] -> T.Tempodb (Either (Maybe [Data Int64]) Bool)
 writeMulti d = do
     let postData = toStrict $ A.encode d
     auth <- ask

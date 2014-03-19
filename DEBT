@@ -10,3 +10,4 @@ application, including devops, that need refactoring attention.
    and I'm repeating the same where functions in many different
    functions (which is bad!).
 3. [ ] Hackage docs! I haven't written anything. Naughty me.
+4. [ ] Make Data polymorphic over the value type for any Num (how?).
