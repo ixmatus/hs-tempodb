@@ -1,5 +1,5 @@
 name:                tempodb
-version:             0.2.2.4
+version:             0.2.2.5
 synopsis:            A small Haskell wrapper around the TempoDB api.
 
 description:         TempoDB is a time-series database as-a-service with a

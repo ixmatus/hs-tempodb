@@ -10,14 +10,13 @@ import           Control.Monad.Reader
 import           Data.Aeson             as A
 import           Data.ByteString.Char8  as C8
 import           Data.ByteString.Lazy   (fromStrict)
-import           Data.Int
 import           Data.Monoid
 import           Database.Tempodb.Types
 import           Database.Tempodb.Util
 import           Network.HTTP.Base      (urlEncodeVars)
 import           Network.Http.Client
 
-readOne :: IdOrKey -> Maybe QueryArgs -> Tempodb (Maybe (SeriesData Int64))
+readOne :: IdOrKey -> Maybe QueryArgs -> Tempodb (Maybe SeriesData)
 readOne q qa = do
     auth <- ask
     req  <- liftIO . buildRequest $ do
@@ -37,7 +36,7 @@ readOne q qa = do
         Nothing  -> mempty
         Just qry -> "?" <> (C8.pack $ urlEncodeVars qry)
 
-readMulti :: Maybe QueryArgs -> Tempodb (Maybe [SeriesData Int64])
+readMulti :: Maybe QueryArgs -> Tempodb (Maybe [SeriesData])
 readMulti q = do
     auth <- ask
     req  <- liftIO . buildRequest $ do

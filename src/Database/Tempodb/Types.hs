@@ -12,7 +12,6 @@ import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.ByteString       as B
 import           Data.ByteString.Char8 as C8
-import           Data.Int
 import           Data.Map              (Map)
 import qualified Data.Text             as T
 import           Data.Text.Encoding    (decodeUtf8, encodeUtf8)
@@ -84,20 +83,20 @@ instance FromJSON B.ByteString where
     parseJSON = withText "ByteString" $ pure . encodeUtf8
     {-# INLINE parseJSON #-}
 
-data Data a = Data
+data Data = Data
     { uid       :: Maybe IdOrKey
     , timestamp :: Maybe TempoDBTime
-    , value     :: a
+    , value     :: Double
     } deriving (Show, Eq)
 
-instance Ord a => Ord (Data a) where
+instance Ord Data where
     compare (Data _ (Just t) _) (Data _ (Just t') _) = compare t t'
-    compare (Data _ Nothing _) (Data _ t' _)         = compare Nothing t'
-    compare (Data _ Nothing v) (Data _ Nothing v')   = compare v v'
+    -- compare (Data _ Nothing _) (Data _ t' _)         = compare Nothing t'
+    -- compare (Data _ Nothing v) (Data _ Nothing v')   = compare v v'
 
-data Bulk a = Bulk
+data Bulk = Bulk
     { timestmp   :: TempoDBTime
-    , bulkValues :: [Data a]
+    , bulkValues :: [Data]
     } deriving (Show, Eq, Ord)
 
 data Rollup = Rollup
@@ -116,16 +115,16 @@ data Summary = Summary
     , count  :: Int
     } deriving (Show, Eq, Ord)
 
-data SeriesData a = SeriesData
+data SeriesData = SeriesData
     { series  :: Series
     , start   :: TempoDBTime
     , end     :: TempoDBTime
-    , values  :: [Data a]
+    , values  :: [Data]
     , rollup  :: Maybe Rollup
     , summary :: Summary
     } deriving (Show, Eq, Ord)
 
-instance FromJSON (SeriesData Int64) where
+instance FromJSON SeriesData where
     parseJSON (Object o) = SeriesData    <$>
                            o .: "series" <*>
                            o .: "start"  <*>
@@ -136,13 +135,13 @@ instance FromJSON (SeriesData Int64) where
 
     parseJSON _ = mzero
 
-instance FromJSON (Bulk Int64) where
+instance FromJSON Bulk where
     parseJSON (Object o) = Bulk     <$>
                            o .: "t" <*>
                            o .: "data"
     parseJSON _ = mzero
 
-instance ToJSON (Bulk Int64) where
+instance ToJSON Bulk where
     toJSON (Bulk t v) = object
         [ "t"    .= t
         , "data" .= v
@@ -180,10 +179,10 @@ instance FromJSON TempoDBTime where
                   Nothing -> mzero
     parseJSON _          = mzero
 
-instance FromJSON (Data Int64) where
+instance FromJSON Data where
     parseJSON = parseSeriesData
 
-parseSeriesData :: Value -> Parser (Data Int64)
+parseSeriesData :: Value -> Parser Data
 parseSeriesData v = do
     case v of
         Object o -> do
@@ -201,10 +200,10 @@ parseSeriesData v = do
         Nothing    -> return Nothing
         Just idkey -> return . Just $ SeriesKey idkey
 
-instance ToJSON (Data Int64) where
+instance ToJSON Data where
     toJSON = buildSeriesData
 
-buildSeriesData :: (Data Int64) -> Value
+buildSeriesData :: Data -> Value
 buildSeriesData (Data i t v) = object . ts . eid $ ["v" .= v]
   where
     ts l = case t of
