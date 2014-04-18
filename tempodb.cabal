@@ -20,27 +20,28 @@ description:
   <http://tempo-db.com TempoDB> is a time series database as a
   service. Follow the link to learn more about it.
   .
-  This simple library is just a wrapper around basic HTTP methods to
-  interact with TempoDB's API. This library provides a monad to run
-  queries and commands inside of.
+  This library is a simple monadic wrapper around basic HTTP methods
+  to interact with TempoDB's REST API.
   .
-  /Examples/
+  /It's Really Easy to Use/
   .
+  > :set -XOverloadedStrings
   > import Database.Tempodb
+  > import Data.ByteString.Char8 as C8
   > let a = BasicAuth (ApiKey "mykey") (ApiSec "mysecret")
   > runTempoDB a $ seriesList Nothing
   > runTempoDB a $ seriesList [("key", "somekey"), ("key", "another")]
   .
-  > :set -XOverloadedStrings
-  > import Data.ByteString.Char8 as C8
-  > import Database.Tempodb
-  > let a = BasicAuth (ApiKey "mykey") (ApiSec "mysecret")
-  > :{
   > runTempoDB a $ do
   >     f <- seriesList $ Just [("key", "somekey"), ("key", "another")]
   >     r <- seriesList Nothing
   >     liftIO . C8.putStrLn $ C8.concat ["Results: ", f, r]
-  > :}
+  .
+  /On My TODO List/
+  .
+  Simplify the key / attribute / tag argument specifier. Right now
+  it's just a list of tuples pretending to be a Map but I think
+  there's a better Map-like representation for these "prop-lists".
   
 
 extra-source-files:
