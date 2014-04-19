@@ -2,8 +2,41 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Database.Tempodb.Types
+-- Copyright   :  (C) 2013 Parnell Springmeyer
+-- License     :  BSD3
+-- Maintainer  :  Parnell Springmeyer <parnell@ixmat.us>
+-- Stability   :  stable
+----------------------------------------------------------------------------
 
-module Database.Tempodb.Types where
+module Database.Tempodb.Types
+(
+-- * API Authentication Types
+  ApiKey(unKey)
+, ApiSec(unSec)
+, BasicAuth
+-- * TempoDB Monad
+, Tempodb(runTDB)
+, runTempoDB
+, TempoDBTime(fromTempoDBTime)
+-- * General TempoDB Types
+-- ** Series ID or Key
+, IdOrKey(SeriesId, SeriesKey)
+-- ** Series Objects
+, Series(id, key, name, tags, attributes)
+-- ** Data Units
+, Data(uid, timestamp, value)
+, compare
+-- ** Read-specific Series Data Types
+, Rollup(interval, function, tz)
+, Summary(mean, sum, min, max, stddev, ss, count)
+, SeriesData(series, start, end, values, rollup, summary)
+, Bulk(timestmp, bulkValues)
+)
+where
 
 import           Control.Applicative
 import           Control.Monad
@@ -21,15 +54,17 @@ import           Network.Http.Client
 import           Prelude               as P
 import           System.Locale
 
--- | It's easy to mix up which one is first so let's newtype these
--- suckers to make it explicit.
+-- | Your TempoDB API Key representing the first part of a `BasicAuth`
+-- value.
 newtype ApiKey = ApiKey {unKey :: ByteString} deriving (Show, Eq, Ord)
+
+-- | Your TempoDB API Secret representing the second part of a `BasicAuth`
+-- value.
 newtype ApiSec = ApiSec {unSec :: ByteString} deriving (Show, Eq, Ord)
 
-newtype TempoDBTime = TempoDBTime {
-      fromTempoDBTime :: UTCTime
-    } deriving (Eq, Ord, Read, Show, Typeable, FormatTime)
-
+-- | Representing a BasicAuth value - the fields are explicit because
+-- it's easy to forget which ORDER each is, particularly when they're
+-- just hashes!
 data BasicAuth = BasicAuth ApiKey ApiSec
     deriving (Show, Eq, Ord)
 
@@ -38,23 +73,83 @@ newtype Tempodb a = Tempodb {
     runTDB :: ReaderT (RequestBuilder ()) IO a
     } deriving (Monad, MonadIO, MonadReader (RequestBuilder ()))
 
+-- | Run an action (`Database.Tempodb.Methods`) inside the `Tempodb`
+-- monad with a BasicAuth value.
 runTempoDB :: BasicAuth -> Tempodb a -> IO a
 runTempoDB auth f = runReaderT (runTDB f) $ baseRequest auth
 
+-- | Set basic authorization using the `BasicAuth` value.
 baseRequest :: BasicAuth -> RequestBuilder ()
 baseRequest (BasicAuth k s) =
     setAuthorizationBasic (unKey k) (unSec s)
 
+newtype TempoDBTime = TempoDBTime {
+      fromTempoDBTime :: UTCTime
+    } deriving (Eq, Ord, Read, Show, Typeable, FormatTime)
+
+-- | IdOrKey is a bad data type name.
 data IdOrKey = SeriesId ByteString | SeriesKey ByteString
     deriving (Show, Eq, Ord)
 
--- | Datatype for TempoDB Series Metadata.
+-- | TempoDB series metadata.
 data Series = Series
-    { id         :: ByteString
-    , key        :: ByteString
-    , name       :: ByteString
-    , tags       :: [ByteString]
+    { id         :: !ByteString
+    , key        :: !ByteString
+    , name       :: !ByteString
+    , tags       :: ![ByteString]
     , attributes :: Map T.Text T.Text
+    } deriving (Show, Eq, Ord)
+
+-- | A TempoDB unit of data, it may have a unique series Id or
+-- Timestamp.
+data Data = Data
+    { uid       :: Maybe IdOrKey
+    , timestamp :: Maybe TempoDBTime
+    , value     :: Double
+    } deriving (Show, Eq)
+
+-- | So we can sort by timestamp.
+instance Ord Data where
+    compare (Data _ (Just t) _) (Data _ (Just t') _) = compare t t'
+    -- compare (Data _ Nothing _) (Data _ t' _)         = compare Nothing t'
+    -- compare (Data _ Nothing v) (Data _ Nothing v')   = compare v v'
+
+-- | A TempoDB bulk write will write a list of `Data` units (with
+-- either the same Id or different ones!) with a single timestamp.
+data Bulk = Bulk
+    { timestmp   :: TempoDBTime
+    , bulkValues :: [Data]
+    } deriving (Show, Eq, Ord)
+
+-- | Represent a rollup (downsampling) specification. Not entirely
+-- sure if I should be using record syntax here.
+data Rollup = Rollup
+    { interval :: ByteString
+    , function :: ByteString
+    , tz       :: ByteString
+    } deriving (Show, Eq, Ord)
+
+-- | Represent a series' summary. Also not sure if I need record
+-- syntax here.
+data Summary = Summary
+    { mean   :: Double
+    , sum    :: Double
+    , min    :: Double
+    , max    :: Double
+    , stddev :: Double
+    , ss     :: Double
+    , count  :: Int
+    } deriving (Show, Eq, Ord)
+
+-- | Represent a series' data including it's range, rollup
+-- specification, and summary.
+data SeriesData = SeriesData
+    { series  :: Series
+    , start   :: TempoDBTime
+    , end     :: TempoDBTime
+    , values  :: [Data]
+    , rollup  :: Maybe Rollup
+    , summary :: Summary
     } deriving (Show, Eq, Ord)
 
 instance FromJSON Series where
@@ -83,46 +178,6 @@ instance FromJSON B.ByteString where
     parseJSON = withText "ByteString" $ pure . encodeUtf8
     {-# INLINE parseJSON #-}
 
-data Data = Data
-    { uid       :: Maybe IdOrKey
-    , timestamp :: Maybe TempoDBTime
-    , value     :: Double
-    } deriving (Show, Eq)
-
-instance Ord Data where
-    compare (Data _ (Just t) _) (Data _ (Just t') _) = compare t t'
-    -- compare (Data _ Nothing _) (Data _ t' _)         = compare Nothing t'
-    -- compare (Data _ Nothing v) (Data _ Nothing v')   = compare v v'
-
-data Bulk = Bulk
-    { timestmp   :: TempoDBTime
-    , bulkValues :: [Data]
-    } deriving (Show, Eq, Ord)
-
-data Rollup = Rollup
-    { interval :: ByteString
-    , function :: ByteString
-    , tz       :: ByteString
-    } deriving (Show, Eq, Ord)
-
-data Summary = Summary
-    { mean   :: Double
-    , sum    :: Double
-    , min    :: Double
-    , max    :: Double
-    , stddev :: Double
-    , ss     :: Double
-    , count  :: Int
-    } deriving (Show, Eq, Ord)
-
-data SeriesData = SeriesData
-    { series  :: Series
-    , start   :: TempoDBTime
-    , end     :: TempoDBTime
-    , values  :: [Data]
-    , rollup  :: Maybe Rollup
-    , summary :: Summary
-    } deriving (Show, Eq, Ord)
 
 instance FromJSON SeriesData where
     parseJSON (Object o) = SeriesData    <$>

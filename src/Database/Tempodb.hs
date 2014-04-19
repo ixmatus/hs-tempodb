@@ -10,8 +10,12 @@
 -- `Database.Tempodb.Methods` mimic TempoDB's REST endpoints.
 ----------------------------------------------------------------------------
 module Database.Tempodb
-( module Database.Tempodb.Types
-, module Database.Tempodb.Methods
+(
+-- * TempoDB Endpoint Methods
+-- ** (the good stuff is in here)
+  module Database.Tempodb.Methods
+-- * Oooh Yeah, Types
+, module Database.Tempodb.Types
 ) where
 
 import           Database.Tempodb.Methods

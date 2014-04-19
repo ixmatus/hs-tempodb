@@ -1,6 +1,6 @@
 name:                tempodb
 version:             0.2.2.6
-synopsis:            A Haskell library wrapping the TempoDB API.
+synopsis:            A monadic TempoDB library.
 homepage:            https://github.com/ixmatus/hs-tempodb
 license:             BSD3
 license-file:        LICENSE
